@@ -5,13 +5,18 @@ import os
 import shutil
 import re
 import random
+import platform
 
-# 📁 Download path (Android visible)
-DOWNLOAD_DIR = "/sdcard/Download/Instube"
+# 🔁 Detect platform
+if platform.system() == "Linux" and os.path.exists("/sdcard/Download"):
+    DOWNLOAD_DIR = "/sdcard/Download/Instube"
+else:
+    DOWNLOAD_DIR = os.path.join(os.getcwd(), "downloads")
+
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 os.makedirs("temp", exist_ok=True)
 
-# 🌐 Proxy list (rotate for Instagram)
+# 🌐 Proxy list for Instagram
 proxy_list = [
     "http://194.67.213.110:8080",
     "http://138.199.14.68:8080",
@@ -19,19 +24,19 @@ proxy_list = [
 ]
 proxy_url = random.choice(proxy_list)
 
-# 🧠 Streamlit Page
+# 🌐 Streamlit UI
 st.set_page_config(page_title="📥 InstaTube Downloader", page_icon="📥")
 st.title("📥 YouTube & Instagram Reels Downloader")
 
-# 🔗 Input URL
+# 🔗 Input
 url = st.text_input("🔗 Paste YouTube or Instagram Reel URL:")
 
-# 🔎 Extract Instagram shortcode
+# 🔍 Shortcode extractor for Instagram
 def extract_shortcode(insta_url):
     match = re.search(r"reel/([A-Za-z0-9_-]+)", insta_url)
     return match.group(1) if match else None
 
-# ▶️ Download Logic
+# ▶️ Download logic
 if st.button("Download"):
     if url:
         try:
@@ -69,7 +74,7 @@ if st.button("Download"):
                     final_path = os.path.join(DOWNLOAD_DIR, os.path.basename(temp_file))
                     shutil.move(temp_file, final_path)
                     st.success(f"🎉 Downloaded: {title}")
-                    st.info(f"📂 Saved to: Download/Instube")
+                    st.info(f"📂 Saved to: {final_path}")
 
             # ------------------- INSTAGRAM SECTION -------------------
             elif "instagram.com/reel" in url:
@@ -86,7 +91,7 @@ if st.button("Download"):
                     post = instaloader.Post.from_shortcode(L.context, shortcode)
                     L.download_post(post, target=DOWNLOAD_DIR)
                     st.success("✅ Instagram Reel downloaded successfully!")
-                    st.info("📂 Saved to: Download/Instube")
+                    st.info(f"📂 Saved to: {DOWNLOAD_DIR}")
 
                 except instaloader.exceptions.QueryReturnedNotFoundException:
                     st.error("❌ Reel not found or removed.")
@@ -103,7 +108,7 @@ if st.button("Download"):
     else:
         st.warning("⚠️ Please enter a URL to start download.")
 
-# 👨‍💻 Developer Info Section (shown always)
+# 👨‍💻 Developer Info
 st.markdown("<h2 style='color:#90EE90;'>ℹ️ Developer Info</h2>", unsafe_allow_html=True)
 st.markdown("👨‍💻 Created by: [Yash Tak](https://www.linkedin.com/in/yash-tak7)")
 st.markdown("🐙 GitHub: [takyash7](https://www.github.com/takyash7)")
