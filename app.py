@@ -23,6 +23,14 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 os.makedirs("temp", exist_ok=True)
 os.makedirs(STATUS_BACKUP_DIR, exist_ok=True)
 
+# 🚮 Clear old WhatsApp statuses on startup
+for file in os.listdir(STATUS_BACKUP_DIR):
+    if file.endswith((".jpg", ".mp4")):
+        try:
+            os.remove(os.path.join(STATUS_BACKUP_DIR, file))
+        except Exception as e:
+            print(f"Error deleting file {file}: {e}")
+
 # 🌐 Proxy list for Instagram
 proxy_list = [
     "http://194.67.213.110:8080", "http://138.199.14.68:8080", "http://45.94.47.66:8080",
@@ -152,7 +160,6 @@ with tab2:
 with tab3:
     st.subheader("🟢 WhatsApp Status Downloader (Manual Upload)")
 
-    # Upload block
     uploaded_file = st.file_uploader("📤 Upload a WhatsApp status file manually", type=["jpg", "mp4"])
     if uploaded_file:
         path = os.path.join(STATUS_BACKUP_DIR, uploaded_file.name)
@@ -160,7 +167,6 @@ with tab3:
             f.write(uploaded_file.getbuffer())
         st.success(f"✅ Uploaded {uploaded_file.name} to MyStatuses.")
 
-    # File listing
     if os.path.exists(STATUS_BACKUP_DIR):
         status_files = [f for f in os.listdir(STATUS_BACKUP_DIR) if f.endswith(('.jpg', '.mp4'))]
         if status_files:
