@@ -63,28 +63,24 @@ if st.button("Download"):
                     st.success(f"🎉 Downloaded: {title}")
                     st.info(f"📂 Saved to: downloads/{os.path.basename(final_path)}")
 
-            # ------------------- INSTAGRAM SECTION -------------------
+            # ------------------- INSTAGRAM SECTION (NO LOGIN) -------------------
             elif "instagram.com/reel" in url:
                 shortcode = extract_shortcode(url)
                 if not shortcode:
                     st.error("❌ Invalid Instagram URL or shortcode could not be extracted.")
                     st.stop()
 
-                st.info("🔐 Logging into Instagram using saved session...")
-
+                st.info("📥 Downloading Reel anonymously (no login)...")
                 L = instaloader.Instaloader()
                 L.context._default_http_proxy = proxy_url
 
                 try:
-                    L.load_session_from_file("yash_tak.7")  # Make sure this session file exists
                     post = instaloader.Post.from_shortcode(L.context, shortcode)
                     L.download_post(post, target="downloads")
                     st.success("✅ Instagram Reel downloaded successfully!")
 
                 except instaloader.exceptions.QueryReturnedNotFoundException:
                     st.error("❌ Reel not found or removed.")
-                except instaloader.exceptions.LoginRequiredException:
-                    st.error("❌ Login failed or session expired.")
                 except instaloader.exceptions.BadResponseException:
                     st.warning("⏳ Instagram is blocking access. Wait or change proxy.")
                 except Exception as e:
