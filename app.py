@@ -99,63 +99,18 @@ with tab1:
             st.warning("⚠️ Please enter a valid YouTube URL.")
 
 # ---------------------- 📸 INSTAGRAM ----------------------
-with tab2:
-    st.subheader("📸 Instagram Reels Downloader")
-    insta_url = st.text_input("🔗 Paste Instagram Reel URL:", key="insta_url")
-
-    def extract_shortcode(insta_url):
-        match = re.search(r"reel/([A-Za-z0-9_-]+)", insta_url)
-        return match.group(1) if match else None
-
-    if st.button("Download Instagram Reel"):
-        if insta_url:
-            shortcode = extract_shortcode(insta_url)
-            if not shortcode:
-                st.error("❌ Invalid Instagram URL or shortcode could not be extracted.")
-            else:
-                st.info(f"📥 Using proxy: {proxy_url}")
-                L = instaloader.Instaloader()
-                L.context._default_http_proxy = proxy_url
-
-                try:
-                    post = instaloader.Post.from_shortcode(L.context, shortcode)
-                    L.download_post(post, target=DOWNLOAD_DIR)
-                    st.success("✅ Instagram Reel downloaded successfully!")
-
-                    video_files = [f for f in os.listdir(DOWNLOAD_DIR) if f.endswith('.mp4')]
-                    video_files.sort(key=lambda f: os.path.getmtime(os.path.join(DOWNLOAD_DIR, f)), reverse=True)
-
-                    if video_files:
-                        latest_video = video_files[0]
-                        final_path = os.path.join(DOWNLOAD_DIR, latest_video)
-                        st.info(f"📂 Saved to: {final_path}")
-
-                        with open(final_path, "rb") as file:
-                            st.download_button(
-                                label="⬇️ Click to Download",
-                                data=file,
-                                file_name=latest_video,
-                                mime="video/mp4"
-                            )
-                    else:
-                        st.warning("⚠️ Downloaded reel not found.")
-
-                except instaloader.exceptions.QueryReturnedNotFoundException:
-                    st.error("❌ Reel not found or removed.")
-                except instaloader.exceptions.BadResponseException:
-                    st.warning("⏳ Instagram is blocking access. Try a different proxy or wait.")
-                except Exception as e:
-                    st.error(f"❌ Unexpected Error: {e}")
-        else:
-            st.warning("⚠️ Please enter a valid Instagram Reel URL.")
-
 # ---------------------- 🟢 WHATSAPP STATUS ----------------------
 with tab3:
     st.subheader("🟢 WhatsApp Status Downloader")
     st.markdown("📁 Please paste viewed WhatsApp status images/videos to `/sdcard/Download/MyStatuses/` manually.")
 
+    # 🛠️ Debug: Show current folder path and file list
+    st.write("🛠️ STATUS_BACKUP_DIR:", STATUS_BACKUP_DIR)
     if os.path.exists(STATUS_BACKUP_DIR):
-        status_files = [f for f in os.listdir(STATUS_BACKUP_DIR) if f.endswith(('.jpg', '.mp4'))]
+        files = os.listdir(STATUS_BACKUP_DIR)
+        st.write("📁 Files inside folder:", files)
+
+        status_files = [f for f in files if f.endswith(('.jpg', '.mp4'))]
         if status_files:
             selected_file = st.selectbox("📂 Select a status to preview & download", status_files)
             file_path = os.path.join(STATUS_BACKUP_DIR, selected_file)
@@ -174,9 +129,10 @@ with tab3:
                     mime="video/mp4" if selected_file.endswith(".mp4") else "image/jpeg"
                 )
         else:
-            st.warning("⚠️ No files found in /Download/MyStatuses/. Please copy viewed statuses there manually.")
+            st.warning("⚠️ No valid .jpg or .mp4 files found in /Download/MyStatuses/.")
     else:
-        st.error("❌ Folder /Download/MyStatuses/ not found. Create it and paste statuses there.")
+        st.error("❌ Folder /Download/MyStatuses/ not found. Please create it and paste statuses manually.")
+
 
 # ℹ️ Developer Info
 st.markdown("---")
