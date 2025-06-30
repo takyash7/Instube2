@@ -6,18 +6,12 @@ import shutil
 import re
 import random
 
-# -- Folder setup
-os.makedirs("downloads", exist_ok=True)
+# 📁 Download path (Android visible)
+DOWNLOAD_DIR = "/sdcard/Download/Instube"
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 os.makedirs("temp", exist_ok=True)
 
-# -- Streamlit Page Config
-st.set_page_config(page_title="📥 InstaTube Downloader", page_icon="📥")
-st.title("📥 YouTube & Instagram Reels Downloader")
-
-# -- User Input
-url = st.text_input("🔗 Paste YouTube or Instagram Reel URL:")
-
-# -- Proxy List (Instagram)
+# 🌐 Proxy list (rotate for Instagram)
 proxy_list = [
     "http://194.67.213.110:8080",
     "http://138.199.14.68:8080",
@@ -25,11 +19,19 @@ proxy_list = [
 ]
 proxy_url = random.choice(proxy_list)
 
-# -- Extract shortcode safely
+# 🧠 Streamlit Page
+st.set_page_config(page_title="📥 InstaTube Downloader", page_icon="📥")
+st.title("📥 YouTube & Instagram Reels Downloader")
+
+# 🔗 Input URL
+url = st.text_input("🔗 Paste YouTube or Instagram Reel URL:")
+
+# 🔎 Extract Instagram shortcode
 def extract_shortcode(insta_url):
     match = re.search(r"reel/([A-Za-z0-9_-]+)", insta_url)
     return match.group(1) if match else None
 
+# ▶️ Download Logic
 if st.button("Download"):
     if url:
         try:
@@ -64,38 +66,15 @@ if st.button("Download"):
                     info = ydl.extract_info(url, download=True)
                     title = info.get('title', 'video')
                     temp_file = ydl.prepare_filename(info).replace(".webm", ".mp4").replace(".mkv", ".mp4")
-                    final_path = os.path.join("downloads", os.path.basename(temp_file))
+                    final_path = os.path.join(DOWNLOAD_DIR, os.path.basename(temp_file))
                     shutil.move(temp_file, final_path)
                     st.success(f"🎉 Downloaded: {title}")
-                    st.info(f"📂 Saved to: downloads/{os.path.basename(final_path)}")
+                    st.info(f"📂 Saved to: Download/Instube")
 
             # ------------------- INSTAGRAM SECTION -------------------
             elif "instagram.com/reel" in url:
                 shortcode = extract_shortcode(url)
-                if not shortcode:
-                    st.error("❌ Invalid Instagram URL or shortcode could not be extracted.")
-                    st.stop()
-
-                st.info(f"📥 Using proxy: {proxy_url}")
-                L = instaloader.Instaloader()
-                L.context._default_http_proxy = proxy_url
-
-                try:
-                    post = instaloader.Post.from_shortcode(L.context, shortcode)
-                    L.download_post(post, target="downloads")
-                    st.success("✅ Instagram Reel downloaded successfully!")
-
-                except instaloader.exceptions.QueryReturnedNotFoundException:
-                    st.error("❌ Reel not found or removed.")
-                except instaloader.exceptions.BadResponseException:
-                    st.warning("⏳ Instagram is blocking access. Try a different proxy or wait.")
-                except Exception as e:
-                    st.error(f"❌ Unexpected Error: {e}")
-
-            else:
-                st.warning("⚠️ Please enter a valid YouTube or Instagram Reel URL.")
-
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
-    else:
-        st.warning("⚠️ Please enter a URL to start download.")
+st.markdown("<h2 style='color:	#90EE90;'>ℹ️ Deveper Info.</h2>", unsafe_allow_html=True)
+st.markdown("👨‍💻 Created by: [Yash Tak](https://www.linkedin.com/in/yash-tak7)")
+st.markdown("🐙 GitHub: [takyash7](https://www.github.com/takyash7)")
+st.markdown("📧 Contact via mail: [yashtak@gmail.com](mailto:yashtak@gmail.com)")
