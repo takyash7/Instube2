@@ -13,9 +13,9 @@ def clean_filename(name):
     return ''.join(c for c in name if c.isalnum() or c in (' ', '.', '_')).strip()
 
 # 📁 Detect Android or PC
-if platform.system() == "Linux" and os.path.exists("/sdcard/Downloads"):
-    DOWNLOAD_DIR = "/sdcard/Downloads/Instube"
-    STATUS_BACKUP_DIR = "/sdcard/Downloads/MyStatuses"
+if platform.system() == "Linux" and os.path.exists("/sdcard/Download"):
+    DOWNLOAD_DIR = "/sdcard/Download/Instube"
+    STATUS_BACKUP_DIR = "/sdcard/Download/MyStatuses"
 else:
     DOWNLOAD_DIR = os.path.join(os.getcwd(), "downloads")
     STATUS_BACKUP_DIR = os.path.join(os.getcwd(), "MyStatuses")
@@ -152,7 +152,7 @@ with tab2:
 # ---------------------- 🟢 WHATSAPP STATUS ----------------------
 with tab3:
     st.subheader("🟢 WhatsApp Status Downloader")
-    st.markdown("📁 Make sure to **manually copy viewed statuses** to `/sdcard/Download/MyStatuses/` using a file manager.")
+    st.markdown("📁 Please paste viewed WhatsApp status images/videos to `/sdcard/Download/MyStatuses/` manually.")
 
     if os.path.exists(STATUS_BACKUP_DIR):
         status_files = [f for f in os.listdir(STATUS_BACKUP_DIR) if f.endswith(('.jpg', '.mp4'))]
