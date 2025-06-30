@@ -4,6 +4,7 @@ import instaloader
 import os
 import shutil
 import re
+import random
 
 # -- Folder setup
 os.makedirs("downloads", exist_ok=True)
@@ -16,8 +17,13 @@ st.title("📥 YouTube & Instagram Reels Downloader")
 # -- User Input
 url = st.text_input("🔗 Paste YouTube or Instagram Reel URL:")
 
-# -- Proxy (Instagram)
-proxy_url = "http://45.94.47.66:8080"
+# -- Proxy List (Instagram)
+proxy_list = [
+    "http://194.67.213.110:8080",
+    "http://138.199.14.68:8080",
+    "http://45.94.47.66:8080"
+]
+proxy_url = random.choice(proxy_list)
 
 # -- Extract shortcode safely
 def extract_shortcode(insta_url):
@@ -50,7 +56,7 @@ if st.button("Download"):
 
                 ydl_opts = {
                     'outtmpl': 'temp/%(title)s.%(ext)s',
-                    'format': 'best[ext=mp4]/best',  # No ffmpeg needed
+                    'format': 'best[ext=mp4]/best',
                     'progress_hooks': [hook]
                 }
 
@@ -63,14 +69,14 @@ if st.button("Download"):
                     st.success(f"🎉 Downloaded: {title}")
                     st.info(f"📂 Saved to: downloads/{os.path.basename(final_path)}")
 
-            # ------------------- INSTAGRAM SECTION (NO LOGIN) -------------------
+            # ------------------- INSTAGRAM SECTION -------------------
             elif "instagram.com/reel" in url:
                 shortcode = extract_shortcode(url)
                 if not shortcode:
                     st.error("❌ Invalid Instagram URL or shortcode could not be extracted.")
                     st.stop()
 
-                st.info("📥 Downloading Reel anonymously (no login)...")
+                st.info(f"📥 Using proxy: {proxy_url}")
                 L = instaloader.Instaloader()
                 L.context._default_http_proxy = proxy_url
 
@@ -82,7 +88,7 @@ if st.button("Download"):
                 except instaloader.exceptions.QueryReturnedNotFoundException:
                     st.error("❌ Reel not found or removed.")
                 except instaloader.exceptions.BadResponseException:
-                    st.warning("⏳ Instagram is blocking access. Wait or change proxy.")
+                    st.warning("⏳ Instagram is blocking access. Try a different proxy or wait.")
                 except Exception as e:
                     st.error(f"❌ Unexpected Error: {e}")
 
