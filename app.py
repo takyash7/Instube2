@@ -6,13 +6,12 @@ import shutil
 import re
 import random
 import platform
-import string
 
-# 🧼 Sanitize filename
+# 🧼 Clean filename
 def clean_filename(name):
     return ''.join(c for c in name if c.isalnum() or c in (' ', '.', '_')).strip()
 
-# 📁 Detect Android or PC
+# 📁 Detect platform
 if platform.system() == "Linux" and os.path.exists("/sdcard/Download"):
     DOWNLOAD_DIR = "/sdcard/Download/Instube"
     STATUS_BACKUP_DIR = "/sdcard/Download/MyStatuses"
@@ -34,14 +33,14 @@ proxy_list = [
 ]
 proxy_url = random.choice(proxy_list)
 
-# 🌐 Streamlit Config
+# Streamlit setup
 st.set_page_config(page_title="📥 InstaTube & Status Downloader", page_icon="📥")
 st.title("📥 InstaTube & WhatsApp Status Downloader")
 
-# Tabs for separate sections
+# Tabs for each feature
 tab1, tab2, tab3 = st.tabs(["🎬 YouTube", "📸 Instagram", "🟢 WhatsApp Status"])
 
-# ---------------------- 🎬 YOUTUBE ----------------------
+# ---------------- 🎬 YouTube Downloader ----------------
 with tab1:
     st.subheader("🎬 YouTube Video Downloader")
     url = st.text_input("🔗 Paste YouTube URL:", key="yt_url")
@@ -98,19 +97,72 @@ with tab1:
         else:
             st.warning("⚠️ Please enter a valid YouTube URL.")
 
-# ---------------------- 📸 INSTAGRAM ----------------------
-# ---------------------- 🟢 WHATSAPP STATUS ----------------------
+# ---------------- 📸 Instagram Reel Downloader ----------------
+with tab2:
+    st.subheader("📸 Instagram Reels Downloader")
+    insta_url = st.text_input("🔗 Paste Instagram Reel URL:", key="insta_url")
+
+    def extract_shortcode(insta_url):
+        match = re.search(r"reel/([A-Za-z0-9_-]+)", insta_url)
+        return match.group(1) if match else None
+
+    if st.button("Download Instagram Reel"):
+        if insta_url:
+            shortcode = extract_shortcode(insta_url)
+            if not shortcode:
+                st.error("❌ Invalid Instagram URL or shortcode could not be extracted.")
+            else:
+                st.info(f"📥 Using proxy: {proxy_url}")
+                L = instaloader.Instaloader()
+                L.context._default_http_proxy = proxy_url
+
+                try:
+                    post = instaloader.Post.from_shortcode(L.context, shortcode)
+                    L.download_post(post, target=DOWNLOAD_DIR)
+                    st.success("✅ Instagram Reel downloaded successfully!")
+
+                    video_files = [f for f in os.listdir(DOWNLOAD_DIR) if f.endswith('.mp4')]
+                    video_files.sort(key=lambda f: os.path.getmtime(os.path.join(DOWNLOAD_DIR, f)), reverse=True)
+
+                    if video_files:
+                        latest_video = video_files[0]
+                        final_path = os.path.join(DOWNLOAD_DIR, latest_video)
+                        st.info(f"📂 Saved to: {final_path}")
+
+                        with open(final_path, "rb") as file:
+                            st.download_button(
+                                label="⬇️ Click to Download",
+                                data=file,
+                                file_name=latest_video,
+                                mime="video/mp4"
+                            )
+                    else:
+                        st.warning("⚠️ Downloaded reel not found.")
+
+                except instaloader.exceptions.QueryReturnedNotFoundException:
+                    st.error("❌ Reel not found or removed.")
+                except instaloader.exceptions.BadResponseException:
+                    st.warning("⏳ Instagram is blocking access. Try a different proxy or wait.")
+                except Exception as e:
+                    st.error(f"❌ Unexpected Error: {e}")
+        else:
+            st.warning("⚠️ Please enter a valid Instagram Reel URL.")
+
+# ---------------- 🟢 WhatsApp Status Downloader ----------------
 with tab3:
-    st.subheader("🟢 WhatsApp Status Downloader")
-    st.markdown("📁 Please paste viewed WhatsApp status images/videos to `/sdcard/Download/MyStatuses/` manually.")
+    st.subheader("🟢 WhatsApp Status Downloader (Manual Upload)")
 
-    # 🛠️ Debug: Show current folder path and file list
-    st.write("🛠️ STATUS_BACKUP_DIR:", STATUS_BACKUP_DIR)
+    # Upload block
+    uploaded_file = st.file_uploader("📤 Upload a WhatsApp status file manually", type=["jpg", "mp4"])
+    if uploaded_file:
+        path = os.path.join(STATUS_BACKUP_DIR, uploaded_file.name)
+        with open(path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.success(f"✅ Uploaded {uploaded_file.name} to MyStatuses.")
+
+    # File listing
     if os.path.exists(STATUS_BACKUP_DIR):
-        files = os.listdir(STATUS_BACKUP_DIR)
-        st.write("📁 Files inside folder:", files)
-
-        status_files = [f for f in files if f.endswith(('.jpg', '.mp4'))]
+        status_files = [f for f in os.listdir(STATUS_BACKUP_DIR) if f.endswith(('.jpg', '.mp4'))]
         if status_files:
             selected_file = st.selectbox("📂 Select a status to preview & download", status_files)
             file_path = os.path.join(STATUS_BACKUP_DIR, selected_file)
@@ -129,12 +181,11 @@ with tab3:
                     mime="video/mp4" if selected_file.endswith(".mp4") else "image/jpeg"
                 )
         else:
-            st.warning("⚠️ No valid .jpg or .mp4 files found in /Download/MyStatuses/.")
+            st.warning("⚠️ No valid status files found. Please upload or copy them to MyStatuses.")
     else:
-        st.error("❌ Folder /Download/MyStatuses/ not found. Please create it and paste statuses manually.")
+        st.error("❌ Folder MyStatuses not found.")
 
-
-# ℹ️ Developer Info
+# ---------------- Developer Info ----------------
 st.markdown("---")
 st.markdown("<h2 style='color:#90EE90;'>ℹ️ Developer Info</h2>", unsafe_allow_html=True)
 st.markdown("👨‍💻 Created by: [Yash Tak](https://www.linkedin.com/in/yash-tak7)")
