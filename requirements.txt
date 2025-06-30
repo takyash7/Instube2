@@ -1,0 +1,4 @@
+streamlit>=1.31.0
+yt-dlp>=2024.4.9
+instaloader>=4.10
+
