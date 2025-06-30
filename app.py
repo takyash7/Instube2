@@ -48,10 +48,9 @@ if st.button("Download"):
                     elif d['status'] == 'finished':
                         status.success("✅ YouTube download complete.")
 
-                # No ffmpeg needed — download MP4 directly
                 ydl_opts = {
                     'outtmpl': 'temp/%(title)s.%(ext)s',
-                    'format': 'best[ext=mp4]/best',
+                    'format': 'best[ext=mp4]/best',  # No ffmpeg needed
                     'progress_hooks': [hook]
                 }
 
@@ -74,7 +73,27 @@ if st.button("Download"):
                 st.info("🔐 Logging into Instagram using saved session...")
 
                 L = instaloader.Instaloader()
-                L.context._default_http_proxy = proxy_url  # Use proxy
+                L.context._default_http_proxy = proxy_url
 
                 try:
-                    L.load_session_from_file("yash_tak.7")  # Your saved session
+                    L.load_session_from_file("yash_tak.7")  # Make sure this session file exists
+                    post = instaloader.Post.from_shortcode(L.context, shortcode)
+                    L.download_post(post, target="downloads")
+                    st.success("✅ Instagram Reel downloaded successfully!")
+
+                except instaloader.exceptions.QueryReturnedNotFoundException:
+                    st.error("❌ Reel not found or removed.")
+                except instaloader.exceptions.LoginRequiredException:
+                    st.error("❌ Login failed or session expired.")
+                except instaloader.exceptions.BadResponseException:
+                    st.warning("⏳ Instagram is blocking access. Wait or change proxy.")
+                except Exception as e:
+                    st.error(f"❌ Unexpected Error: {e}")
+
+            else:
+                st.warning("⚠️ Please enter a valid YouTube or Instagram Reel URL.")
+
+        except Exception as e:
+            st.error(f"❌ Error: {e}")
+    else:
+        st.warning("⚠️ Please enter a URL to start download.")
