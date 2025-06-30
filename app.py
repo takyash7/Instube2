@@ -74,7 +74,37 @@ if st.button("Download"):
             # ------------------- INSTAGRAM SECTION -------------------
             elif "instagram.com/reel" in url:
                 shortcode = extract_shortcode(url)
-st.markdown("<h2 style='color:	#90EE90;'>ℹ️ Deveper Info.</h2>", unsafe_allow_html=True)
+                if not shortcode:
+                    st.error("❌ Invalid Instagram URL or shortcode could not be extracted.")
+                    st.stop()
+
+                st.info(f"📥 Using proxy: {proxy_url}")
+                L = instaloader.Instaloader()
+                L.context._default_http_proxy = proxy_url
+
+                try:
+                    post = instaloader.Post.from_shortcode(L.context, shortcode)
+                    L.download_post(post, target=DOWNLOAD_DIR)
+                    st.success("✅ Instagram Reel downloaded successfully!")
+                    st.info("📂 Saved to: Download/Instube")
+
+                except instaloader.exceptions.QueryReturnedNotFoundException:
+                    st.error("❌ Reel not found or removed.")
+                except instaloader.exceptions.BadResponseException:
+                    st.warning("⏳ Instagram is blocking access. Try a different proxy or wait.")
+                except Exception as e:
+                    st.error(f"❌ Unexpected Error: {e}")
+
+            else:
+                st.warning("⚠️ Please enter a valid YouTube or Instagram Reel URL.")
+
+        except Exception as e:
+            st.error(f"❌ Error: {e}")
+    else:
+        st.warning("⚠️ Please enter a URL to start download.")
+
+# 👨‍💻 Developer Info Section (shown always)
+st.markdown("<h2 style='color:#90EE90;'>ℹ️ Developer Info</h2>", unsafe_allow_html=True)
 st.markdown("👨‍💻 Created by: [Yash Tak](https://www.linkedin.com/in/yash-tak7)")
 st.markdown("🐙 GitHub: [takyash7](https://www.github.com/takyash7)")
-st.markdown("📧 Contact via mail: [yashtak@gmail.com](mailto:yashtak@gmail.com)")
+st.markdown("📧 Contact: [yashtak@gmail.com](mailto:yashtak@gmail.com)")
